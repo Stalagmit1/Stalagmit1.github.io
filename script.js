@@ -102,6 +102,112 @@
     setTimeout(() => { location.href = url.href; }, 360);
   });
 
+
+  /* First-visit intro. It runs once per browser session and never blocks navigation. */
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion) {
+    const intro = document.createElement('div');
+    intro.className = 'intro-screen';
+    intro.setAttribute('aria-hidden', 'true');
+    intro.innerHTML = '<div class="intro-screen__inner"><div class="intro-screen__meta"><span>MAKSIM / PORTFOLIO</span><span>DESIGN + CODE</span></div><p class="intro-screen__title"><span>ЦИФРОВАЯ АРХИТЕКТУРА</span></p><div class="intro-screen__line"></div></div>';
+    let introSeen = false;
+    try { introSeen = sessionStorage.getItem('maksimIntroSeen') === '1'; } catch (error) { introSeen = false; }
+    if (!introSeen) {
+      body.append(intro);
+      requestAnimationFrame(() => body.classList.add('is-ready'));
+      setTimeout(() => {
+        intro.classList.add('is-done');
+        try { sessionStorage.setItem('maksimIntroSeen', '1'); } catch (error) { /* Storage can be disabled in private contexts. */ }
+      }, 1150);
+      setTimeout(() => intro.remove(), 2200);
+    } else {
+      body.classList.add('is-ready');
+    }
+  } else {
+    body.classList.add('is-ready');
+  }
+
+  /* Counters only animate when their block becomes visible. */
+  const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const element = entry.target;
+      const end = Number(element.dataset.counter || 0);
+      const start = performance.now();
+      const duration = 900;
+      const tick = now => {
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        element.textContent = String(Math.max(0, Math.round(end * eased))).padStart(2, '0');
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      counterObserver.unobserve(element);
+    });
+  }, { threshold: .7 });
+  document.querySelectorAll('[data-counter]').forEach(element => counterObserver.observe(element));
+
+  /* Parallax is deliberately small: enough to create depth without making text harder to read. */
+  const parallaxMedia = [...document.querySelectorAll('[data-parallax-media]')];
+  let mediaFrame = 0;
+  const updateMediaParallax = () => {
+    parallaxMedia.forEach(media => {
+      const rect = media.getBoundingClientRect();
+      if (rect.bottom < -100 || rect.top > innerHeight + 100) return;
+      const center = rect.top + rect.height / 2;
+      const offset = Math.max(-18, Math.min(18, (innerHeight / 2 - center) * .035));
+      media.style.setProperty('--media-y', `${offset.toFixed(2)}px`);
+    });
+    mediaFrame = 0;
+  };
+  const requestMediaParallax = () => {
+    if (reducedMotion || mediaFrame) return;
+    mediaFrame = requestAnimationFrame(updateMediaParallax);
+  };
+  addEventListener('scroll', requestMediaParallax, { passive: true });
+  addEventListener('resize', requestMediaParallax, { passive: true });
+  requestMediaParallax();
+
+  /* Magnetic controls: only for fine pointers and only within a small radius. */
+  if (matchMedia('(pointer:fine)').matches && !reducedMotion) {
+    document.querySelectorAll('[data-magnetic]').forEach(element => {
+      element.addEventListener('pointermove', event => {
+        const rect = element.getBoundingClientRect();
+        const x = event.clientX - rect.left - rect.width / 2;
+        const y = event.clientY - rect.top - rect.height / 2;
+        element.style.transform = `translate3d(${(x * .12).toFixed(2)}px,${(y * .16).toFixed(2)}px,0)`;
+      });
+      element.addEventListener('pointerleave', () => {
+        element.style.transform = '';
+      });
+    });
+
+    document.querySelectorAll('[data-tilt]').forEach(element => {
+      const target = element.matches('figure,.service-card') ? element : element.querySelector('figure') || element;
+      element.addEventListener('pointermove', event => {
+        const rect = element.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - .5;
+        const y = (event.clientY - rect.top) / rect.height - .5;
+        target.style.setProperty('--tilt-x', `${(-y * 2.2).toFixed(2)}deg`);
+        target.style.setProperty('--tilt-y', `${(x * 2.6).toFixed(2)}deg`);
+      });
+      element.addEventListener('pointerleave', () => {
+        target.style.setProperty('--tilt-x', '0deg');
+        target.style.setProperty('--tilt-y', '0deg');
+      });
+    });
+  }
+
+  /* Keep only one FAQ item open, which makes the motion and reading flow cleaner. */
+  document.querySelectorAll('.faq details').forEach(details => {
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      document.querySelectorAll('.faq details[open]').forEach(other => {
+        if (other !== details) other.removeAttribute('open');
+      });
+    });
+  });
+
   /* Custom cursor with a real text magnifier */
   const finePointer = matchMedia('(pointer:fine) and (min-width:901px)');
   if (!finePointer.matches) return;

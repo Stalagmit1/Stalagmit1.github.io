@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ru"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f4f3ef"><meta name="description" content="О подходе Максима к веб-дизайну и разработке сайтов для бизнеса.">
+<meta name="theme-color" content="#f4f3ef"><meta name="description" content="О подходе Максима к структуре, веб-дизайну, анимациям и разработке сайтов.">
 <title>Обо мне — Maksim Portfolio</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
 </head><body class="page-about"><div class="page-noise" aria-hidden="true"></div><div class="scroll-progress" aria-hidden="true"><span></span></div><header class="site-header" data-header>
-  <a class="brand" href="index.html" aria-label="Maksim — главная">
+  <a class="brand" href="index.html" aria-label="Maksim — главная" data-magnetic>
     <span class="brand-mark">M</span><span class="brand-name">MAKSIM<br><small>DESIGN / CODE</small></span>
   </a>
   <nav class="desktop-nav" aria-label="Основная навигация">
@@ -13,39 +13,57 @@
     <a href="about.html" data-nav="about">Обо мне</a>
     <a href="contact.html" data-nav="contact">Контакты</a>
   </nav>
-  <a class="header-cta" href="contact.html">Обсудить проект <span>↗</span></a>
+  <a class="header-cta" href="contact.html" data-magnetic>Обсудить проект <span>↗</span></a>
   <button class="menu-toggle" aria-label="Открыть меню" aria-expanded="false"><span></span><span></span></button>
 </header>
 <div class="mobile-menu" aria-hidden="true">
   <nav>
     <a href="projects.html">Проекты</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a><a href="contact.html">Контакты</a>
   </nav>
-  <div class="mobile-meta"><span>Фрилансер Максим</span><span>Сайты под ключ</span></div>
+  <div class="mobile-meta"><span>Независимый дизайнер</span><span>Сайты под ключ</span></div>
 </div>
 <main>
 <section class="page-hero about-hero section-pad">
- <div class="page-hero-top"><span>03 / ABOUT</span><span>INDEPENDENT CREATOR</span></div>
- <h1 class="reveal">Я Максим.<br><em>Проектирую ясность.</em></h1>
- <p class="reveal">Работаю самостоятельно и соединяю в одном процессе структуру, дизайн и техническую реализацию.</p>
+ <div class="page-hero-top"><span>03 / ABOUT</span><span>INDEPENDENT DESIGNER & DEVELOPER</span></div>
+ <h1 class="reveal" data-hero-title>Я Максим.<br><em>Собираю ясные системы.</em></h1>
+ <p class="reveal">Работаю на стыке содержания, дизайна и фронтенд‑реализации. Поэтому могу смотреть на сайт целиком, а не только как на набор отдельных экранов.</p>
 </section>
 <section class="about-story section-pad section-gray">
- <div class="about-portrait reveal" aria-hidden="true"><div class="portrait-grid"></div><span>M</span><small>PORTRAIT / PLACEHOLDER</small></div>
- <div class="about-copy reveal"><p class="lead">Мне близок архитектурный подход: сначала понять задачу и ограничения, затем выстроить систему и только после этого работать с формой.</p><p>Так сайт получается не просто эффектным, а понятным, быстрым и удобным для развития. Я не использую готовый шаблон как основу идеи — каждый проект получает собственный ритм, типографику и композицию.</p><p>Работаю напрямую с заказчиком, поэтому контекст не теряется между менеджером, дизайнером и разработчиком.</p></div>
+ <div class="about-portrait reveal" aria-hidden="true"><div class="portrait-grid"></div><span>M</span><small>AUTHOR / SYSTEM / 01</small></div>
+ <div class="about-copy reveal"><p class="lead">Мне близок архитектурный принцип: сначала функция и ограничения, затем конструкция, ритм и детали.</p><p>До визуальной работы я стараюсь понять, что посетитель должен увидеть первым, какие сомнения у него возникают и какое действие будет естественным следующим шагом.</p><p>После этого появляется дизайн‑система: типографика, сетка, контраст, изображения и анимации. Они не живут отдельно, а помогают содержанию быть убедительнее.</p><p>Я работаю напрямую с заказчиком. Это сокращает путь от решения до реализации и сохраняет единый замысел на всех страницах.</p></div>
 </section>
 <section class="principles section-pad">
- <div class="section-code reveal"><span>04</span><span>Принципы</span></div>
+ <div class="section-code reveal"><span>04</span><span>Как я принимаю решения</span></div>
  <div class="principle-grid">
-  <article class="reveal"><span>01</span><h2>Сначала смысл</h2><p>Визуальное решение должно усиливать содержание, а не маскировать его.</p></article>
-  <article class="reveal"><span>02</span><h2>Меньше шума</h2><p>Чёткая иерархия и свободное пространство помогают пользователю быстрее принимать решения.</p></article>
-  <article class="reveal"><span>03</span><h2>Система важнее экрана</h2><p>Каждая страница должна быть частью общего языка, который легко продолжить.</p></article>
-  <article class="reveal"><span>04</span><h2>Детали работают вместе</h2><p>Шрифт, отступ, анимация и скорость загрузки формируют единое впечатление.</p></article>
+  <article class="reveal"><span>01</span><h2>Сначала задача</h2><p>Эффект имеет смысл только тогда, когда он помогает восприятию, навигации или действию.</p></article>
+  <article class="reveal"><span>02</span><h2>Иерархия вместо шума</h2><p>Пользователь должен быстро понимать, где он находится, что важно и куда двигаться дальше.</p></article>
+  <article class="reveal"><span>03</span><h2>Система вместо случайностей</h2><p>Сетка, компоненты и правила позволяют сайту оставаться цельным при расширении.</p></article>
+  <article class="reveal"><span>04</span><h2>Движение с причиной</h2><p>Анимация направляет внимание и объясняет переход, а не отвлекает от содержания.</p></article>
  </div>
 </section>
-<section class="about-facts section-pad section-inverse">
- <div><span>Формат</span><strong>Фриланс</strong></div><div><span>Специализация</span><strong>Web / UI</strong></div><div><span>Работа</span><strong>Удалённо</strong></div><div><span>Старт проекта</span><strong>После брифа</strong></div>
+<section class="about-approach section-pad section-gray">
+  <div class="section-head reveal"><div class="section-code"><span>05</span><span>В работе со мной</span></div><p>Главное — предсказуемость процесса и понятные аргументы вместо субъективного «нравится / не нравится».</p></div>
+  <div class="approach-list">
+    <article class="reveal"><span>01</span><h3>Прямой контакт</h3><p>Без цепочки менеджеров: вопросы по структуре, дизайну и реализации обсуждаются с автором проекта.</p></article>
+    <article class="reveal"><span>02</span><h3>Показ логики</h3><p>Каждое ключевое решение объясняется через задачу, контекст и ожидаемое поведение пользователя.</p></article>
+    <article class="reveal"><span>03</span><h3>Фиксированные этапы</h3><p>На каждом этапе есть конкретный результат, который можно проверить до движения дальше.</p></article>
+  </div>
 </section>
-</main><footer class="site-footer">
-  <div class="footer-top">
+<section class="portfolio-disclosure section-pad">
+  <div class="section-code reveal"><span>06</span><span>О материалах портфолио</span></div>
+  <div class="portfolio-disclosure-grid">
+    <h2 class="reveal">Честно о том, <em>что вы видите.</em></h2>
+    <div class="portfolio-disclosure-copy reveal">
+      <p>Проекты на этом сайте — демонстрационные концепты. Их тематика, названия, идеи, тексты и визуальные материалы собраны из открытых интернет-источников и используются как временные заглушки.</p>
+      <p>Они не являются реальными клиентскими проектами и не означают, что я выполнял эти работы для указанных компаний или брендов.</p>
+      <p>При этом сам сайт — его структура, визуальная система, адаптивная вёрстка, анимации и интерактивная логика — спроектирован и написан мной, <a href="https://kwork.ru/user/stalagmit718" target="_blank" rel="noopener noreferrer">Максимом ↗</a>, без фреймворков: на чистых HTML, CSS и JavaScript.</p>
+    </div>
+  </div>
+</section>
+<section class="about-facts section-pad section-inverse">
+ <div><span>Формат</span><strong>Фриланс</strong></div><div><span>Фокус</span><strong>Web / UI</strong></div><div><span>Связка</span><strong>Design + Code</strong></div><div><span>Работа</span><strong>Удалённо</strong></div>
+</section></main><footer class="site-footer">
+  <div class="footer-top reveal reveal-clip visible">
     <p class="footer-kicker">Есть идея?</p>
     <a href="contact.html" class="footer-title">Давайте придадим ей форму.<span>↗</span></a>
   </div>
@@ -53,6 +71,10 @@
     <a class="brand footer-brand" href="index.html"><span class="brand-mark">M</span><span class="brand-name">MAKSIM<br><small>DESIGN / CODE</small></span></a>
     <div><a href="projects.html">Проекты</a><a href="services.html">Услуги</a><a href="about.html">Обо мне</a></div>
     <div><a href="https://kwork.ru/user/stalagmit718" target="_blank" rel="noopener noreferrer">Kwork ↗</a><a href="privacy.html">Конфиденциальность</a></div>
-    <p>© <span data-year></span> Maksim<br>Сделано с вниманием к деталям</p>
+    <p>© <span data-year></span> Maksim<br>Структура, дизайн и разработка</p>
+  </div>
+  <div class="footer-disclaimer">
+    <p>Представленные проекты — демонстрационные концепты. Их идеи, названия, тексты и визуальное наполнение используются как заглушки из открытых интернет-источников и не являются реальными клиентскими работами.</p>
+    <p>Этот сайт спроектирован и написан <a href="https://kwork.ru/user/stalagmit718" target="_blank" rel="noopener noreferrer">Максимом ↗</a> на чистых HTML, CSS и JavaScript.</p>
   </div>
 </footer><script src="script.js"></script></body></html>
