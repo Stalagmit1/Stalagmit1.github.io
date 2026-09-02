@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600">
+<rect width="1200" height="1600" fill="#f1f1e6"/>
+<circle cx="910" cy="330" r="235" fill="#cecfac"/>
+<path d="M0 1180 C210 940 430 920 600 1035 C790 1160 980 1090 1200 840 L1200 1600 L0 1600Z" fill="#d8cbbe"/>
+<path d="M90 0 H230 V1600 H90Z" fill="#8c861f" opacity=".12"/>
+<text x="145" y="690" font-family="Arial,Helvetica,sans-serif" font-size="116" letter-spacing="5" fill="#292928">ДЕНИС</text>
+<text x="150" y="770" font-family="Arial,Helvetica,sans-serif" font-size="42" letter-spacing="2" fill="#505050">ПСИХОЛОГ · АДДИКТОЛОГ</text>
+<text x="150" y="830" font-family="Arial,Helvetica,sans-serif" font-size="36" fill="#505050">ГЕШТАЛЬТ-ТЕРАПЕВТ</text>
+<text x="150" y="1450" font-family="Arial,Helvetica,sans-serif" font-size="29" fill="#505050">место для фотографии специалиста</text>
+</svg>
