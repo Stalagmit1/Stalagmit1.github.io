@@ -1,0 +1,890 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Бумажная визитка</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Onest:wght@400;500;600&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Раскладка: бумажные листы с неровными краями лежат на разметочном коврике.
+   Герой это сцена из вырезанных слоёв. Движение покадровое: steps() и дрожание края. */
+:root{
+  --desk:#E7EBF5; --grid:rgba(46,50,72,.06);
+  --paper:#FBFAF8; --paper-2:#E9E6F3;
+  --ink:#2E3248; --ink-soft:#575C75; --screen:#2E3248;
+  --mint:#BDE5D3; --peach:#F8CDB9; --butter:#F9E6A6; --lav:#D3CCF0; --sky:#BFDDF3; --rose:#F5C4D6;
+  --ok:#6FC09B; --bad:#EE8E8E;
+  --edge:rgba(46,50,72,.17); --shadow:rgba(46,50,72,.24); --tape:rgba(249,230,166,.82);
+  --fold:#D9D5E8; --rays:1; --stars:0;
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.09'/%3E%3C/svg%3E");
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-hand:"Caveat","Segoe Script",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --desk:#1C1F2E; --grid:rgba(255,255,255,.04);
+  --paper:#2D3148; --paper-2:#3A3F5C;
+  --ink:#F1EFF8; --ink-soft:#BEC0D6; --screen:#12141F;
+  --mint:#3E6B5A; --peach:#86594A; --butter:#80713F; --lav:#5B5490; --sky:#3F6585; --rose:#86506A;
+  --ok:#5FB08C; --bad:#D77A7A;
+  --edge:rgba(0,0,0,.38); --shadow:rgba(0,0,0,.5); --tape:rgba(128,113,63,.85);
+  --fold:#232640; --rays:0; --stars:1;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --desk:#1C1F2E; --grid:rgba(255,255,255,.04);
+  --paper:#2D3148; --paper-2:#3A3F5C;
+  --ink:#F1EFF8; --ink-soft:#BEC0D6; --screen:#12141F;
+  --mint:#3E6B5A; --peach:#86594A; --butter:#80713F; --lav:#5B5490; --sky:#3F6585; --rose:#86506A;
+  --ok:#5FB08C; --bad:#D77A7A;
+  --edge:rgba(0,0,0,.38); --shadow:rgba(0,0,0,.5); --tape:rgba(128,113,63,.85);
+  --fold:#232640; --rays:0; --stars:1;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background-color:var(--desk);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:32px 32px;
+  color:var(--ink);
+  font:400 1.0625rem/1.6 var(--f-body);
+  padding-block:20px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1120px;margin:0 auto}
+a{color:inherit}
+a:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:4px}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font:700 clamp(1.9rem,4.6vw,3.3rem)/1.1 var(--f-display);letter-spacing:-.02em}
+h2{font:500 clamp(1.5rem,3.2vw,2.15rem)/1.15 var(--f-display);letter-spacing:-.01em}
+h3{font:600 1.15rem/1.3 var(--f-body)}
+p{margin:0}
+.hand{font:600 1.7rem/1.1 var(--f-hand);color:var(--ink-soft)}
+.label{font:600 .76rem/1.2 var(--f-body);text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft)}
+
+/* бумажные детали */
+.piece{
+  position:relative;
+  transform:rotate(var(--r,0deg));
+  filter:drop-shadow(0 2px 0 var(--edge)) drop-shadow(0 8px 9px var(--shadow));
+  animation:wob 1s steps(1,end) infinite;
+  animation-delay:var(--d,0s);
+  min-width:0;
+}
+.sheet{
+  position:relative;
+  background:var(--noise),var(--c,var(--paper));
+  padding:24px 26px;
+  clip-path:var(--cut,polygon(.4% 1.2%,31% 0,63% 1%,99.6% 0,100% 41%,99.2% 99%,69% 100%,34% 98.8%,0 100%,.8% 56%));
+  min-width:0;
+}
+.cut-b{--cut:polygon(0 .8%,38% 0,71% 1.1%,100% .4%,99.2% 46%,100% 100%,56% 99%,21% 100%,.8% 98.5%,0 50%)}
+.cut-c{--cut:polygon(1% 0,46% 1.2%,100% 0,99.3% 52%,100% 99%,61% 100%,0 98.8%,.6% 60%)}
+.taped::before{
+  content:"";position:absolute;z-index:3;top:-9px;left:50%;width:74px;height:22px;margin-left:-37px;
+  background:var(--tape);transform:rotate(-3deg);
+  clip-path:polygon(0 8%,6% 0,12% 10%,18% 0,100% 6%,94% 50%,100% 96%,0 100%,5% 52%)}
+.taped.t2::before{transform:rotate(4deg);margin-left:-20px}
+@keyframes wob{
+  0%{transform:translate(0,0) rotate(var(--r,0deg))}
+  34%{transform:translate(.8px,-.8px) rotate(calc(var(--r,0deg) + .35deg))}
+  67%{transform:translate(-.8px,.7px) rotate(calc(var(--r,0deg) - .3deg))}
+}
+@keyframes settle{
+  0%{transform:translateY(18px) rotate(-1.6deg)}
+  34%{transform:translateY(9px) rotate(1deg)}
+  67%{transform:translateY(3px) rotate(-.5deg)}
+  100%{transform:none}
+}
+@keyframes hop{
+  0%{transform:none}
+  34%{transform:translateY(-4px) rotate(-.7deg)}
+  67%{transform:translateY(-7px) rotate(.6deg)}
+  100%{transform:translateY(-4px)}
+}
+.piece.is-in>.sheet{animation:settle .5s steps(1,end) 1}
+@media (hover:hover){.piece.lift:hover>.sheet{animation:hop .4s steps(1,end) 1 forwards}}
+
+/* шапка */
+.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between;margin-bottom:36px}
+.brand{font:600 1.8rem/1 var(--f-hand)}
+nav{display:flex;flex-wrap:wrap;gap:8px}
+nav a{
+  text-decoration:none;font-weight:500;font-size:.95rem;padding:7px 15px;background:var(--noise),var(--paper);
+  box-shadow:0 2px 0 var(--edge);clip-path:polygon(0 6%,50% 0,100% 8%,99% 94%,48% 100%,1% 92%)}
+nav a:hover{background:var(--noise),var(--butter)}
+
+/* герой */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:36px 44px;align-items:center}
+.lead{margin-top:20px;max-width:34rem;font-size:1.14rem;color:var(--ink-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:14px 12px;margin-top:28px}
+.chip .sheet{padding:9px 15px;font-weight:600;font-size:.92rem;line-height:1.3}
+.chip a{text-decoration:none}
+.scene-wrap .sheet{padding:10px;--c:var(--paper)}
+.scene{display:block;width:100%;height:auto}
+.scene text{font-family:var(--f-body)}
+.s-sky{fill:var(--sky)}.s-lav{fill:var(--lav)}.s-mint{fill:var(--mint)}.s-peach{fill:var(--peach)}
+.s-butter{fill:var(--butter)}.s-rose{fill:var(--rose)}.s-paper{fill:var(--paper)}.s-screen{fill:var(--screen)}
+.cutout{filter:drop-shadow(0 3px 0 var(--edge))}
+.line{fill:none;stroke:var(--ink);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.wire{fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linecap:round}
+.scene *{transform-box:fill-box}
+.sun-rays{transform-origin:center;opacity:var(--rays);animation:sun 1.2s steps(3,end) infinite}
+@keyframes sun{to{transform:rotate(45deg)}}
+.cloud{animation:drift 18s steps(18,end) infinite alternate}
+.cloud.c2{animation-duration:24s;animation-delay:-6s}
+@keyframes drift{from{transform:translateX(-22px)}to{transform:translateX(30px)}}
+.fa{animation:flip .8s steps(1,end) infinite}
+.fb{animation:flip .8s steps(1,end) infinite;animation-delay:-.4s}
+@keyframes flip{0%{opacity:1}50%{opacity:0}}
+.blink{animation:blink 1.2s steps(1,end) infinite}
+@keyframes blink{0%{opacity:1}50%{opacity:.12}}
+.type{transform-origin:left center;animation:type 3.2s steps(9,end) infinite}
+@keyframes type{0%{transform:scaleX(0)}80%{transform:scaleX(1)}100%{transform:scaleX(1)}}
+.bird{animation:fly 14s steps(28,end) infinite}
+@keyframes fly{from{transform:translate(-50px,0)}to{transform:translate(690px,-34px)}}
+
+/* секции */
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin:84px 0 30px}
+.grid{display:grid;gap:30px 28px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.span2{grid-column:1/-1}
+
+/* награды */
+.award .sheet{display:flex;flex-direction:column;gap:12px;min-height:100%}
+.award p{color:var(--ink-soft);font-size:.98rem}
+.rosette{position:relative;width:76px;height:88px;color:var(--rb,var(--butter));margin-bottom:2px}
+.rosette svg{width:100%;height:100%;display:block}
+.rosette b{position:absolute;left:0;right:0;top:25px;text-align:center;font:700 1.15rem/1 var(--f-display);color:var(--ink)}
+.rosette .rs{animation:wob 1s steps(1,end) infinite;transform-origin:50% 40%}
+
+/* соревнования */
+.comp{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:30px 28px;align-items:start}
+.tickets{display:grid;gap:28px}
+.ticket .sheet{display:grid;gap:4px;padding-left:34px}
+.ticket .sheet::before{content:"";position:absolute;left:12px;top:14px;bottom:14px;border-left:3px dotted var(--ink-soft);opacity:.55}
+.ticket h3{font-size:1.2rem}
+.rank-note{margin-top:14px;color:var(--ink-soft);font-size:.98rem;max-width:44rem}
+.rank-grid{display:grid;grid-template-columns:repeat(44,1fr);gap:2px;margin-top:18px}
+.rank-grid i{aspect-ratio:1;background:var(--paper-2);display:block}
+.rank-grid i.a{background:var(--lav)}
+.rank-grid i.me{background:var(--butter);outline:2px solid var(--ink);outline-offset:1px;z-index:2;animation:blink 1s steps(1,end) infinite}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;font-size:.88rem;color:var(--ink-soft)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;display:inline-block;background:var(--paper-2)}
+.legend i.a{background:var(--lav)}.legend i.me{background:var(--butter);outline:2px solid var(--ink);outline-offset:1px}
+
+/* проекты */
+.proj .sheet{display:flex;flex-wrap:wrap;gap:22px 28px;align-items:center}
+.proj-art{flex:1 1 260px;min-width:0}
+.proj-body{flex:1 1 280px;min-width:0;display:grid;gap:12px;align-content:start}
+.proj-body p{color:var(--ink-soft)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{background:var(--noise),var(--paper);color:var(--ink);font-size:.84rem;font-weight:500;padding:4px 11px;box-shadow:0 2px 0 var(--edge);clip-path:polygon(0 8%,50% 0,100% 10%,99% 92%,50% 100%,1% 90%)}
+.proj-art svg,.proj-art canvas{display:block;width:100%;height:auto;max-width:100%}
+.proj-art canvas{max-width:208px;margin:0 auto;image-rendering:pixelated}
+.proj .sheet.col{flex-direction:column;align-items:stretch}
+.visit{display:inline-block;font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.lamp-pin{animation:bob .9s steps(1,end) infinite}
+@keyframes bob{0%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.lamp{animation:lamp 6s steps(1,end) infinite;fill:var(--ok);stroke:var(--ink);stroke-width:1.5}
+@keyframes lamp{0%{fill:var(--ok)}52%{fill:var(--bad)}70%{fill:var(--ok)}}
+.grow{stroke-dasharray:1;stroke-dashoffset:1;animation:grow 7s steps(10,end) infinite;fill:none;stroke-width:9}
+@keyframes grow{0%{stroke-dashoffset:1}65%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}
+.endpt{transform-origin:center;animation:endpt 7s steps(1,end) infinite}
+@keyframes endpt{0%,62%{transform:scale(0)}68%{transform:scale(1.3)}74%,100%{transform:scale(1)}}
+.bars{display:grid;gap:12px;margin-top:4px}
+.bar{display:grid;gap:5px;font-size:.9rem}
+.bar b{display:block;height:28px;background:var(--noise),var(--rose);clip-path:polygon(0 8%,40% 0,100% 6%,99% 94%,55% 100%,1% 92%);box-shadow:0 2px 0 var(--edge)}
+.bar.good b{background:var(--noise),var(--mint)}
+.bar span{display:flex;justify-content:space-between;gap:12px;font-weight:500}
+.wave{animation:flip 1.2s steps(1,end) infinite}
+.wave.w2{animation-delay:-.4s}.wave.w3{animation-delay:-.8s}
+
+/* навыки */
+.skill .sheet{display:grid;gap:10px;align-content:start;min-height:100%}
+.skill p{color:var(--ink-soft);font-size:.96rem}
+.sk-ico{width:52px;height:52px;color:var(--ink)}
+.sk-ico .spin{transform-origin:center;animation:teeth 1.2s steps(3,end) infinite}
+@keyframes teeth{to{transform:rotate(60deg)}}
+.stamp{font:700 clamp(2rem,4vw,2.6rem)/1 var(--f-display)}
+
+footer{margin-top:84px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:baseline;justify-content:space-between;color:var(--ink-soft)}
+footer .hand{font-size:1.5rem}
+
+
+/* ===== вторая версия: курсор, тёмная тема, док, лента, счётчики ===== */
+::selection{background:var(--butter);color:var(--ink)}
+h1,h2,h3,p,.tag,.chip{overflow-wrap:anywhere}
+h1 mark{background:none;color:inherit;position:relative;isolation:isolate;padding:0 .08em}
+h1 mark::before{content:"";position:absolute;z-index:-1;left:0;right:0;bottom:.04em;height:.5em;background:var(--noise),var(--butter);transform:rotate(-1.2deg);clip-path:polygon(0 12%,12% 0,40% 8%,70% 0,100% 10%,98% 90%,70% 100%,35% 92%,8% 100%)}
+.fold{--cut:polygon(0 .8%,40% 0,100% .6%,100% calc(100% - 26px),calc(100% - 26px) 100%,45% 99.2%,0 100%)}
+.fold::after{content:"";position:absolute;right:0;bottom:0;width:26px;height:26px;background:linear-gradient(135deg,var(--paper) 10%,var(--fold) 55%);clip-path:polygon(0 0,100% 0,0 100%)}
+.piece.tap>.sheet{animation:hop .4s steps(1,end) 1 forwards}
+.skill .sheet::before{content:"";position:absolute;inset:8px;border:1.5px dashed var(--edge);pointer-events:none}
+.stars{opacity:var(--stars)}
+.tw{animation:blink 2.6s steps(1,end) infinite}
+.moon{fill:var(--sky);opacity:var(--stars)}
+.par{transform:translate(calc(var(--px,0)*var(--k,0)*1px),calc(var(--py,0)*var(--k,0)*1px))}
+
+.tools{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.theme{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:6px 14px;font:600 .92rem var(--f-body);color:var(--ink);background:var(--noise),var(--butter);border-radius:6px;box-shadow:0 2px 0 var(--edge)}
+.theme:hover{background:var(--noise),var(--peach)}
+.theme:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.theme svg{width:18px;height:18px}
+.theme[data-mode="dark"] .i-sun,.theme[data-mode="light"] .i-moon{display:none}
+
+.note{--r:-4deg;position:absolute;z-index:4;left:-4px;bottom:-18px;transform:rotate(var(--r));background:var(--noise),var(--butter);padding:6px 14px 8px;font:600 1.3rem/1 var(--f-hand);box-shadow:0 2px 0 var(--edge),0 7px 10px var(--shadow);animation:wob 1s steps(1,end) infinite}
+@media (hover:none){.note{display:none}}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:64px}
+.stat .sheet{padding:18px 20px;display:grid;gap:4px}
+.num{font:700 2.5rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{color:var(--ink-soft);font-weight:500;font-size:.95rem}
+
+.strip{margin-top:56px;overflow:hidden;transform:rotate(-1deg);background:var(--noise),var(--lav);padding:10px 0;border-block:2px dashed var(--ink-soft);clip-path:polygon(0 0,100% 0,99.4% 25%,100% 50%,99.4% 75%,100% 100%,0 100%,.6% 75%,0 50%,.6% 25%)}
+.strip-in{display:flex;width:max-content;animation:strip 28s steps(56,end) infinite}
+.strip-in span{white-space:nowrap;font:600 .92rem/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;padding-right:1.2rem}
+@keyframes strip{to{transform:translateX(-50%)}}
+
+.dock{display:none}
+.dock a{flex:1;min-width:0;text-align:center;text-decoration:none;font-weight:600;font-size:.82rem;line-height:1.2;padding:12px 4px;min-height:44px;background:var(--noise),var(--paper);color:var(--ink);border-radius:10px 10px 4px 4px;box-shadow:0 2px 0 var(--edge),0 6px 10px var(--shadow)}
+.dock a.on{background:var(--noise),var(--butter);transform:translateY(-5px)}
+.dock a:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+#cur,#ring{display:none;position:fixed;left:0;top:0;pointer-events:none;z-index:9999}
+html.has-cur #cur,html.has-cur #ring{display:block}
+html.has-cur.cur-off #cur,html.has-cur.cur-off #ring{visibility:hidden}
+html.has-cur,html.has-cur *{cursor:none!important}
+#cur svg{display:block;width:30px;height:34px;filter:drop-shadow(2px 3px 0 var(--edge));transform-origin:3px 2px}
+#cur.press svg{transform:scale(.84) rotate(-8deg)}
+#ring{width:38px;height:38px;border-radius:50%;border:2.5px dashed var(--ink);opacity:0}
+#ring.on{opacity:.85}
+.conf{position:fixed;width:9px;height:9px;pointer-events:none;z-index:9998;clip-path:polygon(0 10%,60% 0,100% 40%,90% 100%,10% 90%);animation:conf .6s steps(5,end) forwards}
+@keyframes conf{from{transform:translate(0,0) rotate(0deg);opacity:1}to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+
+@media (max-width:900px){
+  .hero,.comp{grid-template-columns:minmax(0,1fr)}
+  .g3{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:620px){
+  .g3,.g2{grid-template-columns:minmax(0,1fr)}
+  .sheet{padding:20px 20px}
+  .sec-head{margin-top:64px}
+  .rank-grid{gap:1px}
+}
+@media (max-width:720px){
+  html{-webkit-tap-highlight-color:transparent}
+  body{font-size:1rem;padding-bottom:96px}
+  .top{margin-bottom:22px}
+  .top nav{display:none}
+  .brand{font-size:1.6rem}
+  .dock{display:flex;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:50;
+    padding:14px max(14px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));
+    background:linear-gradient(to top,var(--desk) 60%,transparent)}
+  h1{font-size:clamp(1.7rem,7.4vw,2.2rem)}
+  .lead{font-size:1.04rem;margin-top:16px}
+  .hero{gap:30px}
+  .chips{margin-top:22px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:46px}
+  .num{font-size:2.1rem}
+  .strip{margin-top:44px}
+  .rank-grid{grid-template-columns:repeat(28,1fr);gap:1px}
+  .sec-head{margin:60px 0 22px}
+  .proj .sheet{gap:18px}
+  footer{margin-top:60px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;scroll-behavior:auto!important}
+  .grow{stroke-dashoffset:0}
+}
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <span class="brand">визитка · 2026</span>
+  <div class="tools">
+    <nav aria-label="Разделы">
+      <a href="#awards">Награды</a>
+      <a href="#contests">Соревнования</a>
+      <a href="#projects">Проекты</a>
+      <a href="#skills">Навыки</a>
+    </nav>
+    <button class="theme" id="theme" type="button" data-mode="light" aria-pressed="false" aria-label="Переключить день и ночь">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" fill="currentColor"/></svg>
+      <span class="tl">День</span>
+    </button>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="h1">
+  <div>
+    <p class="hand">Привет!</p>
+    <h1 id="h1">Делаю сайты, <mark>нейросети</mark> и умные устройства</h1>
+    <p class="lead">Программирую с 12 лет, самоучка. Учусь на горного электромеханика. Каждый проект ниже сделал сам: от сайта для жителей Алдана до генератора лиц, обученного на видеокарте с 4 ГБ.</p>
+    <div class="chips">
+      <div class="piece chip lift" style="--r:-1.5deg;--d:-.2s"><div class="sheet" style="--c:var(--butter)">Диплом I степени, Москва, 2026</div></div>
+      <div class="piece chip lift" style="--r:1.2deg;--d:-.5s"><div class="sheet cut-b" style="--c:var(--mint)">Финалист IT-Плеханов Cup 2026</div></div>
+      <div class="piece chip lift" style="--r:-.8deg;--d:-.7s"><div class="sheet cut-c" style="--c:var(--lav)"><a href="https://mycountryrussia.ru" target="_blank" rel="noopener">mycountryrussia.ru</a></div></div>
+    </div>
+  </div>
+
+  <div class="piece scene-wrap taped" style="--r:1.4deg;--d:-.3s">
+    <div class="sheet cut-b">
+      <svg class="scene" viewBox="0 0 640 440" role="img" aria-label="Бумажная сцена: горы, опора линии электропередачи, ноутбук с кодом и микроконтроллер с мигающим светодиодом">
+        <defs>
+          <filter id="boil" x="-3%" y="-3%" width="106%" height="106%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="1" result="n">
+              <animate attributeName="seed" values="1;5;3;8;2;6" dur="0.9s" calcMode="discrete" repeatCount="indefinite"/>
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4"/>
+          </filter>
+        </defs>
+        <g filter="url(#boil)">
+          <path class="s-sky cutout" d="M12 20 L626 8 L630 424 L8 430 Z"/>
+
+          <g class="stars s-butter">
+            <path class="tw" d="M0 -6L2 -2L6 0L2 2L0 6L-2 2L-6 0L-2 -2Z" transform="translate(58 54)"/>
+            <path class="tw" style="animation-delay:-.7s" d="M0 -5L1.6 -1.6L5 0L1.6 1.6L0 5L-1.6 1.6L-5 0L-1.6 -1.6Z" transform="translate(126 38)"/>
+            <path class="tw" style="animation-delay:-1.4s" d="M0 -6L2 -2L6 0L2 2L0 6L-2 2L-6 0L-2 -2Z" transform="translate(236 62)"/>
+            <path class="tw" style="animation-delay:-.3s" d="M0 -5L1.6 -1.6L5 0L1.6 1.6L0 5L-1.6 1.6L-5 0L-1.6 -1.6Z" transform="translate(330 34)"/>
+            <path class="tw" style="animation-delay:-2s" d="M0 -6L2 -2L6 0L2 2L0 6L-2 2L-6 0L-2 -2Z" transform="translate(392 78)"/>
+            <path class="tw" style="animation-delay:-1s" d="M0 -5L1.6 -1.6L5 0L1.6 1.6L0 5L-1.6 1.6L-5 0L-1.6 -1.6Z" transform="translate(588 56)"/>
+            <path class="tw" style="animation-delay:-2.2s" d="M0 -5L1.6 -1.6L5 0L1.6 1.6L0 5L-1.6 1.6L-5 0L-1.6 -1.6Z" transform="translate(40 150)"/>
+          </g>
+          <g class="par" style="--k:.15">
+          <g transform="translate(500 104)">
+            <g class="sun-rays s-butter">
+              <rect x="-4" y="-62" width="8" height="22" rx="2"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(45)"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(90)"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(135)"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(180)"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(225)"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(270)"/>
+              <rect x="-4" y="-62" width="8" height="22" rx="2" transform="rotate(315)"/>
+            </g>
+            <circle r="32" class="s-butter cutout"/>
+            <circle class="moon" cx="13" cy="-9" r="27"/>
+          </g>
+          </g>
+
+          <g transform="translate(150 70)"><g class="cloud cutout"><path class="s-paper" d="M0 34 C0 20 12 14 24 16 C28 2 52 0 60 14 C76 8 92 18 88 34 Z"/></g></g>
+          <g transform="translate(300 128)"><g class="cloud c2 cutout"><path class="s-paper" d="M0 30 C0 18 10 12 20 14 C24 2 44 0 52 12 C64 8 76 16 72 30 Z"/></g></g>
+
+          <g class="par" style="--k:.25"><g class="cutout">
+            <path class="s-lav" d="M8 340 L110 200 L170 260 L250 150 L350 290 L410 235 L500 330 L630 270 L630 424 L8 424 Z"/>
+            <path class="s-paper" d="M250 150 L228 184 L244 178 L252 190 L262 176 L274 182 Z"/>
+            <path class="s-paper" d="M110 200 L96 222 L108 218 L116 226 L124 214 Z"/>
+          </g></g>
+          <g class="par" style="--k:.45"><path class="s-mint cutout" d="M8 372 L130 292 L240 352 L360 300 L500 368 L630 322 L630 424 L8 424 Z"/>
+          <path class="s-peach cutout" d="M8 396 C150 384 300 402 630 386 L630 430 L8 430 Z"/></g>
+
+          <g transform="translate(0 70)"><g class="bird s-rose">
+            <g class="cutout">
+              <path d="M0 0 L18 -3 L26 2 L16 5 Z"/>
+              <path class="fa" d="M10 -1 L20 -15 L25 0 Z"/>
+              <path class="fb" d="M10 1 L21 13 L25 1 Z"/>
+            </g>
+          </g></g>
+
+          <g class="par" style="--k:.7"><g class="cutout">
+            <path class="line" d="M68 396 L98 206 L128 396 M60 236 L136 236 M66 270 L130 270 M84 296 L117 330 M112 296 L78 330 M82 296 H114 M78 330 H118"/>
+            <path class="line" style="stroke-width:4" d="M540 384 L560 300 L580 384 M546 322 H574 M550 350 L572 322 M570 350 L548 322"/>
+            <circle cx="60" cy="244" r="4.5" class="s-lav"/><circle cx="136" cy="244" r="4.5" class="s-lav"/>
+            <circle cx="66" cy="278" r="4.5" class="s-lav"/><circle cx="130" cy="278" r="4.5" class="s-lav"/>
+          </g>
+          <circle class="s-butter blink" cx="98" cy="202" r="6"/>
+          <g>
+            <path class="wire fa" d="M60 240 Q300 264 546 326 M136 248 Q340 272 574 326"/>
+            <path class="wire fb" d="M60 240 Q300 292 546 326 M136 248 Q340 300 574 326"/>
+          </g>
+
+          <g transform="translate(250 296)">
+            <g class="cutout">
+              <rect class="s-screen" width="150" height="98" rx="6"/>
+              <rect class="s-paper" x="-14" y="98" width="178" height="14" rx="4"/>
+            </g>
+            <rect class="s-mint type" x="16" y="18" width="70" height="7" rx="2"/>
+            <rect class="s-lav type" x="28" y="34" width="100" height="7" rx="2" style="animation-delay:-.5s"/>
+            <rect class="s-peach type" x="28" y="50" width="54" height="7" rx="2" style="animation-delay:-1.1s"/>
+            <rect class="s-sky type" x="16" y="66" width="86" height="7" rx="2" style="animation-delay:-1.7s"/>
+            <rect class="s-butter blink" x="108" y="66" width="7" height="7"/>
+          </g>
+
+          <g transform="translate(452 362)">
+            <g class="cutout">
+              <rect x="-4" y="6" width="68" height="40" rx="4" class="s-screen"/>
+              <path class="s-paper" d="M2 0h4v8H2zM12 0h4v8h-4zM22 0h4v8h-4zM32 0h4v8h-4zM42 0h4v8h-4zM52 0h4v8h-4z"/>
+            </g>
+            <text x="6" y="31" font-size="12" font-weight="600" fill="#F1EFF8">ESP32</text>
+            <circle cx="53" cy="16" r="4" class="s-rose blink"/>
+          </g>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="note" aria-hidden="true">двигай мышкой</div>
+  </div>
+</section>
+
+<section class="stats" aria-label="Коротко">
+  <div class="piece stat" style="--r:-1deg;--d:-.1s"><div class="sheet" style="--c:var(--butter)"><b class="num" data-n="3">3</b><span>награды</span></div></div>
+  <div class="piece stat" style="--r:.8deg;--d:-.4s"><div class="sheet cut-b" style="--c:var(--mint)"><b class="num" data-n="3">3</b><span>соревнования</span></div></div>
+  <div class="piece stat" style="--r:-.6deg;--d:-.7s"><div class="sheet cut-c" style="--c:var(--lav)"><b class="num" data-n="4">4</b><span>проекта</span></div></div>
+  <div class="piece stat" style="--r:1deg;--d:-.3s"><div class="sheet" style="--c:var(--peach)"><b class="num" data-n="1">1</b><span>пилот в Алдане</span></div></div>
+</section>
+
+<div class="strip" aria-hidden="true"><div class="strip-in">
+  <span>ESP32 · ESP8266 · диффузия · REPA · FID 174 · Алдан · горный электромеханик · IT-Плеханов Cup · AI Challenge · 187 из 924 ·</span>
+  <span>ESP32 · ESP8266 · диффузия · REPA · FID 174 · Алдан · горный электромеханик · IT-Плеханов Cup · AI Challenge · 187 из 924 ·</span>
+</div></div>
+
+<section id="awards" aria-labelledby="h-awards">
+  <div class="sec-head"><h2 id="h-awards">Дипломы и награды</h2><span class="hand">2025 и 2026</span></div>
+  <div class="grid g3">
+    <article class="piece award lift taped" style="--r:-1deg;--d:-.1s">
+      <div class="sheet" style="--c:var(--butter)">
+        <div class="rosette" style="--rb:var(--paper)"><svg viewBox="0 0 80 88" aria-hidden="true"><g class="rs"><path fill="var(--rose)" d="M28 56 L20 86 L34 78 L40 86 L40 56Z"/><path fill="var(--sky)" d="M52 56 L60 86 L46 78 L40 86 L40 56Z"/><g fill="currentColor"><circle cx="64" cy="36" r="9"/><circle cx="59.4" cy="50.1" r="9"/><circle cx="47.4" cy="58.8" r="9"/><circle cx="32.6" cy="58.8" r="9"/><circle cx="20.6" cy="50.1" r="9"/><circle cx="16" cy="36" r="9"/><circle cx="20.6" cy="21.9" r="9"/><circle cx="32.6" cy="13.2" r="9"/><circle cx="47.4" cy="13.2" r="9"/><circle cx="59.4" cy="21.9" r="9"/><circle cx="40" cy="36" r="24"/></g></g></svg><b>I</b></div>
+        <span class="label">Диплом 1 степени</span>
+        <h3>Всероссийский конкурс «Наука, творчество, духовность», IT</h3>
+        <p>Очный тур, Москва, март 2026.</p>
+      </div>
+    </article>
+    <article class="piece award lift taped t2" style="--r:.9deg;--d:-.4s">
+      <div class="sheet cut-b" style="--c:var(--lav)">
+        <div class="rosette" style="--rb:var(--paper)"><svg viewBox="0 0 80 88" aria-hidden="true"><g class="rs"><path fill="var(--butter)" d="M28 56 L20 86 L34 78 L40 86 L40 56Z"/><path fill="var(--mint)" d="M52 56 L60 86 L46 78 L40 86 L40 56Z"/><g fill="currentColor"><circle cx="64" cy="36" r="9"/><circle cx="59.4" cy="50.1" r="9"/><circle cx="47.4" cy="58.8" r="9"/><circle cx="32.6" cy="58.8" r="9"/><circle cx="20.6" cy="50.1" r="9"/><circle cx="16" cy="36" r="9"/><circle cx="20.6" cy="21.9" r="9"/><circle cx="32.6" cy="13.2" r="9"/><circle cx="47.4" cy="13.2" r="9"/><circle cx="59.4" cy="21.9" r="9"/><circle cx="40" cy="36" r="24"/></g></g></svg><b>★</b></div>
+        <span class="label">Лауреат</span>
+        <h3>Заочный тур конкурса «Наука, творчество, духовность», IT</h3>
+        <p>Тот же всероссийский конкурс, заочный этап.</p>
+      </div>
+    </article>
+    <article class="piece award lift taped" style="--r:-.6deg;--d:-.7s">
+      <div class="sheet cut-c" style="--c:var(--mint)">
+        <div class="rosette" style="--rb:var(--paper)"><svg viewBox="0 0 80 88" aria-hidden="true"><g class="rs"><path fill="var(--peach)" d="M28 56 L20 86 L34 78 L40 86 L40 56Z"/><path fill="var(--lav)" d="M52 56 L60 86 L46 78 L40 86 L40 56Z"/><g fill="currentColor"><circle cx="64" cy="36" r="9"/><circle cx="59.4" cy="50.1" r="9"/><circle cx="47.4" cy="58.8" r="9"/><circle cx="32.6" cy="58.8" r="9"/><circle cx="20.6" cy="50.1" r="9"/><circle cx="16" cy="36" r="9"/><circle cx="20.6" cy="21.9" r="9"/><circle cx="32.6" cy="13.2" r="9"/><circle cx="47.4" cy="13.2" r="9"/><circle cx="59.4" cy="21.9" r="9"/><circle cx="40" cy="36" r="24"/></g></g></svg><b>III</b></div>
+        <span class="label">Диплом 3 степени</span>
+        <h3>Форум «Шаг в будущую профессию», Якутск</h3>
+        <p>2025. Проект: умная колонка на ESP32 и ESP8266.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="contests" aria-labelledby="h-contests">
+  <div class="sec-head"><h2 id="h-contests">Соревнования</h2><span class="hand">2026</span></div>
+  <div class="comp">
+    <div class="tickets">
+      <article class="piece ticket lift" style="--r:-1.1deg;--d:-.2s">
+        <div class="sheet fold" style="--c:var(--sky)">
+          <span class="label">Финалист</span>
+          <h3>IT-Плеханов Cup 2026</h3>
+          <p>Направление «Веб».</p>
+        </div>
+      </article>
+      <article class="piece ticket lift" style="--r:.8deg;--d:-.6s">
+        <div class="sheet cut-b fold" style="--c:var(--rose)">
+          <span class="label">Участник</span>
+          <h3>AI Challenge 2026</h3>
+          <p>Соревнование от Сбера.</p>
+        </div>
+      </article>
+    </div>
+    <article class="piece" style="--r:-.5deg;--d:-.4s">
+      <div class="sheet cut-c">
+        <span class="label">Выходи решать</span>
+        <h3 style="margin-top:6px">187 место из 924 участников</h3>
+        <div class="rank-grid" id="rank-grid" role="img" aria-label="Сетка из 924 квадратов, по одному на участника. 186 квадратов впереди, мой 187-й подсвечен."></div>
+        <div class="legend" aria-hidden="true"><span><i class="a"></i>впереди</span><span><i class="me"></i>187 место</span><span><i></i>позади</span></div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="projects" aria-labelledby="h-projects">
+  <div class="sec-head"><h2 id="h-projects">Проекты</h2><span class="hand">сделано своими руками</span></div>
+  <div class="grid g2">
+
+    <article class="piece proj lift span2" style="--r:-.4deg;--d:-.3s">
+      <div class="sheet cut-b fold">
+        <div class="proj-art">
+          <svg viewBox="0 0 320 190" role="img" aria-label="Бумажная карта города с точками, где свет то есть, то пропадает">
+            <rect width="320" height="190" rx="8" fill="var(--mint)"/>
+            <g stroke="var(--paper)" stroke-width="10" fill="none"><path d="M0 62H320M0 130H320M92 0V190M222 0V190"/></g>
+            <g>
+              <rect x="14" y="12" width="64" height="36" fill="var(--lav)"/><rect x="106" y="12" width="104" height="36" fill="var(--peach)"/><rect x="236" y="12" width="70" height="36" fill="var(--butter)"/>
+              <rect x="14" y="78" width="64" height="40" fill="var(--sky)"/><rect x="106" y="78" width="104" height="40" fill="var(--rose)"/><rect x="236" y="78" width="70" height="40" fill="var(--lav)"/>
+              <rect x="14" y="146" width="64" height="34" fill="var(--butter)"/><rect x="106" y="146" width="104" height="34" fill="var(--sky)"/><rect x="236" y="146" width="70" height="34" fill="var(--peach)"/>
+            </g>
+            <g transform="translate(46 68)"><g class="lamp-pin"><path class="lamp" d="M0 0 L-7 -12 A9 9 0 1 1 7 -12 Z"/><circle cy="-18" r="3" fill="var(--paper)"/></g></g>
+            <g transform="translate(158 136)"><g class="lamp-pin" style="animation-delay:-.3s"><path class="lamp" style="animation-duration:7s;animation-delay:-2s" d="M0 0 L-7 -12 A9 9 0 1 1 7 -12 Z"/><circle cy="-18" r="3" fill="var(--paper)"/></g></g>
+            <g transform="translate(264 68)"><g class="lamp-pin" style="animation-delay:-.6s"><path class="lamp" style="animation-duration:5s;animation-delay:-3s" d="M0 0 L-7 -12 A9 9 0 1 1 7 -12 Z"/><circle cy="-18" r="3" fill="var(--paper)"/></g></g>
+            <g transform="translate(264 136)"><g class="lamp-pin" style="animation-delay:-.2s"><path class="lamp" style="animation-duration:8s;animation-delay:-4s" d="M0 0 L-7 -12 A9 9 0 1 1 7 -12 Z"/><circle cy="-18" r="3" fill="var(--paper)"/></g></g>
+            <g transform="translate(158 68)"><g class="lamp-pin" style="animation-delay:-.5s"><path class="lamp" style="animation-duration:6.5s;animation-delay:-1s" d="M0 0 L-7 -12 A9 9 0 1 1 7 -12 Z"/><circle cy="-18" r="3" fill="var(--paper)"/></g></g>
+          </svg>
+          <div class="legend" style="margin-top:10px"><span><i style="background:var(--ok)"></i>свет есть</span><span><i style="background:var(--bad)"></i>отключение</span></div>
+        </div>
+        <div class="proj-body">
+          <span class="label">Сайт для жителей</span>
+          <h3 style="font-size:1.5rem">Народный контроль: Алдан</h3>
+          <p>Статусы отключений света на карте, личные кабинеты, обработка обращений, панель штаба и ИИ-помощник. Разработан целиком самостоятельно. Алдан это пилот, сейчас добавляются уведомления в Telegram и MAX.</p>
+          <div class="tags"><span class="tag">Статусы</span><span class="tag">Карта</span><span class="tag">Кабинеты</span><span class="tag">Обращения</span><span class="tag">Панель штаба</span><span class="tag">ИИ-помощник</span></div>
+          <a class="visit" href="https://mycountryrussia.ru" target="_blank" rel="noopener">mycountryrussia.ru</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="piece proj lift" style="--r:.7deg;--d:-.5s">
+      <div class="sheet col cut-c fold" style="--c:var(--lav)">
+        <div class="proj-art">
+          <canvas id="lumen" width="192" height="192" role="img" aria-label="Схема: шум за восемь кадров превращается в бумажное лицо"></canvas>
+          <p class="label" style="text-align:center;margin-top:10px">шум становится лицом</p>
+        </div>
+        <div class="proj-body">
+          <h3 style="font-size:1.4rem">Lumen</h3>
+          <p>Генератор лиц на латентной диффузии. Написан с нуля и обучен на видеокарте с 4 ГБ памяти. Подан на конкурс «Учёные будущего 2026».</p>
+          <div class="bars" role="img" aria-label="FID с методом REPA 174, без него 257. Ниже лучше.">
+            <div class="bar good"><span><span>с методом REPA</span><span>FID 174</span></span><b style="width:67.7%"></b></div>
+            <div class="bar"><span><span>без REPA</span><span>FID 257</span></span><b style="width:100%"></b></div>
+          </div>
+          <p class="label">FID: чем ниже, тем лучше</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="piece proj lift" style="--r:-.8deg;--d:-.8s">
+      <div class="sheet col fold" style="--c:var(--peach)">
+        <div class="proj-art">
+          <svg viewBox="0 0 320 150" role="img" aria-label="Ветвящаяся линия времени от 1989 до 2023">
+            <g class="grow-g">
+              <path pathLength="1" class="grow" style="stroke:var(--ink)" d="M16 76 H120"/>
+              <path pathLength="1" class="grow" style="stroke:var(--lav);animation-delay:.2s" d="M120 76 C160 76 160 22 204 22 H290"/>
+              <path pathLength="1" class="grow" style="stroke:var(--mint);animation-delay:.35s" d="M120 76 C150 76 160 54 204 54 H290"/>
+              <path pathLength="1" class="grow" style="stroke:var(--rose);animation-delay:.5s" d="M120 76 C150 76 160 98 204 98 H290"/>
+              <path pathLength="1" class="grow" style="stroke:var(--butter);animation-delay:.65s" d="M120 76 C160 76 160 130 204 130 H290"/>
+            </g>
+            <g fill="var(--paper)" stroke="var(--ink)" stroke-width="2">
+              <circle class="endpt" cx="296" cy="22" r="9"/><circle class="endpt" cx="296" cy="54" r="9" style="animation-delay:.1s"/>
+              <circle class="endpt" cx="296" cy="98" r="9" style="animation-delay:.2s"/><circle class="endpt" cx="296" cy="130" r="9" style="animation-delay:.3s"/>
+            </g>
+            <text x="16" y="108" font-size="13" font-weight="600" fill="var(--ink)">1989</text>
+            <text x="248" y="12" font-size="13" font-weight="600" fill="var(--ink)" text-anchor="end">2023</text>
+          </svg>
+        </div>
+        <div class="proj-body">
+          <h3 style="font-size:1.4rem">Игра про альтернативные миры</h3>
+          <p>Генератор миров на ветках истории России и Запада, 1989–2023. У каждого мира есть ИИ-паспорт. Работает в браузере.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="piece proj lift span2" style="--r:.5deg;--d:-.1s">
+      <div class="sheet fold" style="--c:var(--sky)">
+        <div class="proj-art" style="flex-basis:220px">
+          <svg viewBox="0 0 280 170" role="img" aria-label="Умная колонка: микроконтроллер, динамик и звуковые волны">
+            <rect x="12" y="34" width="86" height="76" rx="5" fill="var(--screen)"/>
+            <g fill="var(--paper)"><path d="M22 22h6v12h-6zM38 22h6v12h-6zM54 22h6v12h-6zM70 22h6v12h-6zM86 22h6v12h-6z"/><path d="M22 110h6v12h-6zM38 110h6v12h-6zM54 110h6v12h-6zM70 110h6v12h-6zM86 110h6v12h-6z"/></g>
+            <text x="22" y="76" font-family="Onest,sans-serif" font-size="15" font-weight="600" fill="#F1EFF8">ESP32</text>
+            <text x="22" y="95" font-family="Onest,sans-serif" font-size="11" fill="#BEC0D6">ESP8266</text>
+            <circle cx="84" cy="48" r="5" fill="var(--rose)" class="blink"/>
+            <path d="M98 72 H132 M98 84 H132" stroke="var(--ink)" stroke-width="3" fill="none" stroke-dasharray="6 5"/>
+            <rect x="132" y="38" width="64" height="94" rx="12" fill="var(--peach)"/>
+            <circle cx="164" cy="70" r="12" fill="var(--paper)"/><circle cx="164" cy="104" r="19" fill="var(--paper)"/><circle cx="164" cy="104" r="9" fill="var(--screen)"/>
+            <g fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round">
+              <path class="wave" d="M208 92 Q216 104 208 116"/>
+              <path class="wave w2" d="M222 82 Q236 104 222 126"/>
+              <path class="wave w3" d="M236 72 Q256 104 236 136"/>
+            </g>
+          </svg>
+        </div>
+        <div class="proj-body">
+          <span class="label">Микроконтроллеры</span>
+          <h3 style="font-size:1.4rem">Умная колонка на ESP32 и ESP8266</h3>
+          <p>С этим проектом получен диплом 3 степени на форуме «Шаг в будущую профессию», Якутск, 2025.</p>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section id="skills" aria-labelledby="h-skills">
+  <div class="sec-head"><h2 id="h-skills">Навыки</h2><span class="hand">всему учился сам</span></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+    <article class="piece skill lift taped" style="--r:-1deg;--d:-.2s"><div class="sheet" style="--c:var(--butter)">
+      <span class="stamp">с 12 лет</span><h3>Программирую</h3><p>Самоучка, без курсов и наставников.</p></div></article>
+    <article class="piece skill lift taped t2" style="--r:.9deg;--d:-.5s"><div class="sheet cut-b" style="--c:var(--mint)">
+      <svg class="sk-ico" viewBox="0 0 52 52" aria-hidden="true"><path d="M17 14 L6 26 L17 38 M35 14 L46 26 L35 38 M30 10 L22 42" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3>Веб-разработка</h3><p>Сайты с картой, кабинетами и ИИ-помощником.</p></div></article>
+    <article class="piece skill lift taped" style="--r:-.7deg;--d:-.8s"><div class="sheet cut-c" style="--c:var(--lav)">
+      <svg class="sk-ico" viewBox="0 0 52 52" aria-hidden="true"><g stroke="currentColor" stroke-width="2.5"><path d="M10 14 L26 10 M10 14 L26 26 M10 26 L26 10 M10 26 L26 26 M10 38 L26 26 M10 38 L26 42 M26 10 L42 26 M26 26 L42 26 M26 42 L42 26"/></g><g fill="currentColor"><circle cx="10" cy="14" r="4"/><circle cx="10" cy="26" r="4"/><circle cx="10" cy="38" r="4"/><circle cx="26" cy="10" r="4"/><circle cx="26" cy="26" r="4"/><circle cx="26" cy="42" r="4"/><circle cx="42" cy="26" r="5"/></g></svg>
+      <h3>Нейросети</h3><p>Диффузионные модели, обучение с нуля.</p></div></article>
+    <article class="piece skill lift taped t2" style="--r:.8deg;--d:-.3s"><div class="sheet" style="--c:var(--peach)">
+      <svg class="sk-ico" viewBox="0 0 52 52" aria-hidden="true"><rect x="13" y="13" width="26" height="26" rx="3" fill="currentColor"/><g stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M19 6v7M26 6v7M33 6v7M19 39v7M26 39v7M33 39v7M6 19h7M6 26h7M6 33h7M39 19h7M39 26h7M39 33h7"/></g></svg>
+      <h3>Микроконтроллеры</h3><p>ESP32 и ESP8266, умные устройства.</p></div></article>
+    <article class="piece skill lift taped" style="--r:-.9deg;--d:-.6s"><div class="sheet cut-b" style="--c:var(--sky)">
+      <svg class="sk-ico" viewBox="0 0 52 52" aria-hidden="true"><g class="spin"><circle cx="26" cy="26" r="15" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="7.85 7.85"/></g><circle cx="26" cy="26" r="11" fill="currentColor"/><circle cx="26" cy="26" r="4.5" fill="var(--sky)"/></svg>
+      <h3>Горный электромеханик</h3><p>Специальность, второй курс.</p></div></article>
+  </div>
+</section>
+
+<footer>
+  <span class="hand">Спасибо, что дочитали.</span>
+  <span><a href="https://mycountryrussia.ru" target="_blank" rel="noopener">mycountryrussia.ru</a></span>
+</footer>
+
+</div>
+
+<nav class="dock" aria-label="Разделы">
+  <a href="#awards">Награды</a>
+  <a href="#contests">Конкурсы</a>
+  <a href="#projects">Проекты</a>
+  <a href="#skills">Навыки</a>
+</nav>
+
+<div id="cur" aria-hidden="true"><svg viewBox="0 0 30 34"><path d="M3 2 L3 26 L9.5 20 L14 30 L19 27.5 L14.5 18 L23 17.5 Z" fill="var(--butter)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/></svg></div>
+<div id="ring" aria-hidden="true"></div>
+
+<script>
+(function(){
+  var rm=false;
+  try{rm=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+  if(rm){document.querySelectorAll('animate').forEach(function(a){a.remove()})}
+
+  /* сетка участников: 924 квадрата, 186 впереди, 187-й мой */
+  var g=document.getElementById('rank-grid');
+  if(g){var h='';for(var i=1;i<=924;i++){h+='<i'+(i<187?' class="a"':(i===187?' class="me"':''))+'></i>'}g.innerHTML=h}
+
+  /* бумага оседает покадрово, когда лист попадает в кадр */
+  var pieces=document.querySelectorAll('.piece');
+  if('IntersectionObserver' in window && !rm){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target)}})},{threshold:.15});
+    pieces.forEach(function(p){io.observe(p)});
+  }
+
+  /* Lumen: схема «шум становится лицом» на сетке 24x24 */
+  var cv=document.getElementById('lumen');
+  if(cv&&cv.getContext){
+    var ctx=cv.getContext('2d'),N=24,C=8;
+    var pal=['#F8CDB9','#BDE5D3','#F9E6A6','#D3CCF0','#BFDDF3','#F5C4D6','#FBFAF8'];
+    function target(x,y){
+      var dx=x-11.5;
+      var hair=Math.pow(dx/10,2)+Math.pow((y-11)/11.5,2)<1;
+      var face=Math.pow(dx/7.4,2)+Math.pow((y-13)/9,2)<1;
+      if(y>=21&&x>=4&&x<=19)return '#8FD0B3';
+      if(face){
+        if((x===9||x===14)&&(y===12||y===13))return '#2E3248';
+        if(y===17&&x>=10&&x<=13)return '#E58FA8';
+        if(y===16&&(x===9||x===14))return '#E58FA8';
+        if((x===8||x===15)&&y===15)return '#F2A9B8';
+        if(y<=8)return '#9C8FD6';
+        return '#F8CDB9';
+      }
+      if(hair&&y<19)return '#9C8FD6';
+      return '#BFDDF3';
+    }
+    var tg=[],rn=[];
+    for(var y=0;y<N;y++)for(var x=0;x<N;x++){tg.push(target(x,y));rn.push(((x*73856093)^(y*19349663))%97/97)}
+    var P=[1,.86,.7,.52,.36,.22,.11,.04,0,0],f=0;
+    function draw(fr){
+      var p=P[fr];
+      for(var y=0;y<N;y++)for(var x=0;x<N;x++){
+        var i=y*N+x,col;
+        if(rn[i]>=p){col=tg[i]}else{col=pal[(i*7+fr*13+((i*31)%5))%pal.length]}
+        ctx.fillStyle=col;ctx.fillRect(x*C,y*C,C,C);
+      }
+    }
+    if(rm){draw(P.length-1)}else{
+      draw(0);
+      setInterval(function(){if(document.hidden)return;f=(f+1)%P.length;draw(f)},380);
+    }
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var rm=false,fine=false,root=document.documentElement;
+  try{rm=matchMedia('(prefers-reduced-motion: reduce)').matches;fine=matchMedia('(hover:hover) and (pointer:fine)').matches}catch(e){}
+
+  /* день и ночь */
+  var btn=document.getElementById('theme'),mq=null;
+  try{mq=matchMedia('(prefers-color-scheme: dark)')}catch(e){}
+  function isDark(){var t=root.getAttribute('data-theme');return t?t==='dark':!!(mq&&mq.matches)}
+  function sync(){var d=isDark();btn.setAttribute('aria-pressed',d?'true':'false');btn.setAttribute('data-mode',d?'dark':'light');btn.querySelector('.tl').textContent=d?'Ночь':'День'}
+  try{var saved=localStorage.getItem('vz-theme');if(saved==='dark'||saved==='light')root.setAttribute('data-theme',saved)}catch(e){}
+  btn.addEventListener('click',function(){
+    var n=isDark()?'light':'dark';
+    root.setAttribute('data-theme',n);
+    try{localStorage.setItem('vz-theme',n)}catch(e){}
+    sync();
+  });
+  if(mq&&mq.addEventListener)mq.addEventListener('change',sync);
+  sync();
+
+  /* курсор из бумаги: двигается кадрами, на клик рассыпает конфетти */
+  if(fine){
+    var cur=document.getElementById('cur'),ring=document.getElementById('ring');
+    var mx=-100,my=-100,lx=-100,ly=-100,hot=false,seen=false;
+    var cols=['var(--butter)','var(--mint)','var(--rose)','var(--lav)','var(--sky)','var(--peach)'];
+    document.addEventListener('pointermove',function(e){
+      if(e.pointerType==='touch')return;
+      mx=e.clientX;my=e.clientY;
+      if(!seen){seen=true;lx=mx;ly=my;root.classList.add('has-cur')}
+      var t=e.target&&e.target.closest?e.target.closest('a,button,.lift'):null;
+      hot=!!t;
+    },{passive:true});
+    document.addEventListener('pointerdown',function(e){
+      if(e.pointerType==='touch')return;
+      cur.classList.add('press');
+      if(rm)return;
+      for(var i=0;i<8;i++){
+        var c=document.createElement('i'),a=Math.PI*2*i/8+Math.random()*.6,d=26+Math.random()*34;
+        c.className='conf';
+        c.style.cssText='left:'+e.clientX+'px;top:'+e.clientY+'px;background:'+cols[i%6]+';--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;--rot:'+Math.round(Math.random()*360)+'deg';
+        document.body.appendChild(c);
+        (function(n){setTimeout(function(){if(n.parentNode)n.parentNode.removeChild(n)},700)})(c);
+      }
+    });
+    document.addEventListener('pointerup',function(){cur.classList.remove('press')});
+    root.addEventListener('mouseleave',function(){root.classList.add('cur-off')});
+    root.addEventListener('mouseenter',function(){root.classList.remove('cur-off')});
+    setInterval(function(){
+      if(!seen||document.hidden)return;
+      cur._t=(cur._t||0)+1;if(cur._t%5===1){cur._r=rm?0:(Math.random()*6-3);cur._j=rm?0:(Math.random()*2-1)}var rot=cur._r||0,jx=cur._j||0;
+      cur.style.transform='translate('+(Math.round(mx/2)*2-3+jx)+'px,'+(Math.round(my/2)*2-2)+'px) rotate('+rot+'deg)';
+      ring.style.transform='translate('+(Math.round(lx/2)*2-19)+'px,'+(Math.round(ly/2)*2-19)+'px) scale('+(hot?1:.45)+') rotate('+(rm?0:rot*5)+'deg)';
+      ring.className=hot?'on':'';
+      lx=mx;ly=my;
+    },16);
+  }
+
+  /* бумажные слои сцены сдвигаются ступеньками вслед за мышкой */
+  var sc=document.querySelector('.scene');
+  if(sc&&fine&&!rm){
+    var ppx=0,ppy=0;
+    document.addEventListener('pointermove',function(e){
+      if(e.pointerType==='touch')return;
+      var nx=Math.round((e.clientX/window.innerWidth-.5)*20/2)*2,ny=Math.round((e.clientY/window.innerHeight-.5)*10/2)*2;
+      if(nx!==ppx||ny!==ppy){ppx=nx;ppy=ny;sc.style.setProperty('--px',nx);sc.style.setProperty('--py',ny)}
+    },{passive:true});
+  }
+
+  /* касание на телефоне: лист подпрыгивает кадрами */
+  document.addEventListener('pointerdown',function(e){
+    if(e.pointerType!=='touch'||rm)return;
+    var p=e.target&&e.target.closest?e.target.closest('.lift'):null;
+    if(!p)return;
+    p.classList.remove('tap');void p.offsetWidth;p.classList.add('tap');
+    setTimeout(function(){p.classList.remove('tap')},700);
+  },{passive:true});
+
+  /* счётчики перелистываются по кадрам */
+  var nums=document.querySelectorAll('[data-n]');
+  if('IntersectionObserver' in window&&!rm){
+    var io3=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(!e.isIntersecting)return;
+      io3.unobserve(e.target);
+      var el=e.target,n=+el.getAttribute('data-n'),k=0;
+      el.textContent='0';
+      var t=setInterval(function(){k++;el.textContent=k;if(k>=n)clearInterval(t)},200);
+    })},{threshold:.6});
+    nums.forEach(function(n){io3.observe(n)});
+  }
+
+  /* нижняя панель на телефоне подсвечивает текущий раздел */
+  var links=[].slice.call(document.querySelectorAll('.dock a')),map={};
+  links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+  if('IntersectionObserver' in window){
+    var io4=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting){links.forEach(function(a){a.classList.remove('on')});if(map[e.target.id])map[e.target.id].classList.add('on')}
+    })},{rootMargin:'-45% 0px -50% 0px'});
+    ['awards','contests','projects','skills'].forEach(function(id){var el=document.getElementById(id);if(el)io4.observe(el)});
+  }
+})();
+</script>
+
+<style>
+.proj{cursor:pointer}
+.proj:focus-visible{outline:3px solid var(--ink);outline-offset:6px}
+.more{justify-self:start;font:600 .9rem var(--f-body);background:var(--noise),var(--butter);color:#2E3248;padding:5px 13px;box-shadow:0 2px 0 var(--edge);clip-path:polygon(0 8%,50% 0,100% 10%,99% 92%,50% 100%,1% 90%)}
+#pm{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(28,31,46,.55)}
+#pm.on{display:flex}
+#pm .box{position:relative;width:min(760px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--noise),var(--paper);padding:24px 28px 30px;box-shadow:0 10px 0 var(--edge),0 18px 40px var(--shadow);overflow-x:hidden}
+#pm .x{position:absolute;right:14px;top:12px;z-index:5;font:600 .95rem var(--f-body);background:var(--butter);color:#2E3248;border:0;padding:6px 14px;cursor:pointer;box-shadow:0 2px 0 var(--edge)}
+.stage{position:relative;margin:26px 0 14px;box-shadow:0 3px 0 var(--edge);background:var(--sky)}
+.stage .pb{height:6px;background:var(--ink);transform-origin:left;animation:pb 6s steps(60,end) both}
+@keyframes pb{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.rep{margin:0 0 14px;font:600 .9rem var(--f-body);background:var(--noise),var(--paper-2);color:var(--ink);border:0;padding:6px 14px;cursor:pointer;box-shadow:0 2px 0 var(--edge)}
+#pm .long{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;color:var(--ink-soft);overflow-wrap:anywhere}#pm .long *{min-width:0;max-width:100%}#pm .stage{overflow:hidden}
+#pm .long h3{color:var(--ink);font-size:1.5rem}
+#pm .long ul{margin:0;padding-left:1.2rem;display:grid;gap:6px}
+.clip{display:block;width:100%;height:auto}.clip text{font-family:var(--f-body)}
+.clip *{transform-box:fill-box;transform-origin:center}
+.pp{animation:pp .4s steps(3,end) var(--t,0s) both}
+@keyframes pp{0%{opacity:0;transform:translateY(10px) scale(.7)}50%{opacity:1;transform:translateY(-3px) scale(1.08)}100%{opacity:1;transform:none}}
+.dr{stroke-dasharray:1;animation:dr var(--d,1s) steps(10,end) var(--t,0s) both}
+@keyframes dr{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.rd{animation:rd .01s steps(1,end) var(--t) both}
+@keyframes rd{from{fill:var(--ok)}to{fill:var(--bad)}}
+.nz{animation:nz .01s steps(1,end) var(--t) both}
+@keyframes nz{to{opacity:0}}
+.wv{animation:wv .8s steps(4,end) var(--t) infinite both}
+@keyframes wv{0%{opacity:0;transform:scale(.6)}50%{opacity:1}100%{opacity:0;transform:scale(1.25)}}
+.mv{stroke-dasharray:6 5;animation:mv .6s steps(4,end) infinite}
+@keyframes mv{to{stroke-dashoffset:-11}}
+@media (prefers-reduced-motion:reduce){.clip *,.stage .pb{animation:none!important}.nz{display:none}}
+</style>
+<div id="pm" role="dialog" aria-modal="true" aria-labelledby="pm-t"><div class="box">
+<button class="x" type="button" aria-label="Закрыть">Закрыть ✕</button>
+<div class="stage"><div id="pm-clip"></div><div class="pb" id="pm-pb"></div></div>
+<button class="rep" type="button">▶ Ещё раз</button>
+<div class="long" id="pm-txt"></div></div></div>
+<script>
+(function(){
+var pin='M0 0 L-7 -12 A9 9 0 1 1 7 -12 Z';
+function noise(){var pal=['#F8CDB9','#BDE5D3','#F9E6A6','#D3CCF0','#BFDDF3','#F5C4D6'],s='';
+for(var y=0;y<9;y++)for(var x=0;x<16;x++){s+='<rect class="nz" x="'+x*20+'" y="'+y*20+'" width="20" height="20" fill="'+pal[(x*5+y*3)%6]+'" style="--t:'+(0.5+Math.random()*3.8).toFixed(1)+'s"/>'}return s}
+function pinG(x,y,t,red){return '<g transform="translate('+x+' '+y+')"><g class="pp" style="--t:'+t+'s"><path class="'+(red?'rd':'')+'" style="--t:3.4s" d="'+pin+'" fill="var(--ok)" stroke="#2E3248" stroke-width="1.5"/><circle cy="-18" r="3" fill="#fff"/></g></g>'}
+var B=function(c){return '<svg class="clip" viewBox="0 0 320 180" role="img" aria-label="Ролик про проект">'+c+'</svg>'};
+var clips=[
+B('<rect width="320" height="180" fill="var(--mint)"/><g stroke="var(--paper)" stroke-width="10" fill="none"><path d="M0 60H320M0 124H320M92 0V180M222 0V180"/></g>'+
+[[14,10,64,38,'lav'],[106,10,104,38,'peach'],[236,10,70,38,'butter'],[14,76,64,36,'sky'],[106,76,104,36,'rose'],[236,76,70,36,'lav'],[14,138,64,32,'butter'],[106,138,104,32,'sky'],[236,138,70,32,'peach']].map(function(r,i){return '<rect class="pp" style="--t:'+(i*.15).toFixed(2)+'s" x="'+r[0]+'" y="'+r[1]+'" width="'+r[2]+'" height="'+r[3]+'" fill="var(--'+r[4]+')"/>'}).join('')+
+pinG(46,66,1.6)+pinG(158,66,1.8)+pinG(264,66,2,1)+pinG(158,130,2.2)+pinG(264,130,2.4)+
+'<g class="pp" style="--t:3.8s"><rect x="150" y="14" width="160" height="30" fill="#fff" stroke="#2E3248" stroke-width="2"/><text x="160" y="34" font-size="13" font-weight="600" fill="#2E3248">Отключение: статус на карте</text></g>'+
+'<g class="pp" style="--t:4.8s"><rect x="14" y="138" width="130" height="30" fill="var(--butter)" stroke="#2E3248" stroke-width="2"/><text x="24" y="158" font-size="13" font-weight="600" fill="#2E3248">ИИ-помощник отвечает</text></g>'),
+B('<rect width="320" height="180" fill="var(--sky)"/><path d="M60 180 Q160 110 260 180Z" fill="#8FD0B3"/><ellipse cx="160" cy="84" rx="62" ry="70" fill="#9C8FD6"/><ellipse cx="160" cy="100" rx="46" ry="56" fill="#F8CDB9"/><path d="M114 80 Q160 40 206 80 Q190 60 160 58 Q130 60 114 80Z" fill="#9C8FD6"/><circle cx="142" cy="92" r="5" fill="#2E3248"/><circle cx="178" cy="92" r="5" fill="#2E3248"/><circle cx="130" cy="112" r="7" fill="#F2A9B8"/><circle cx="190" cy="112" r="7" fill="#F2A9B8"/><path d="M148 124 Q160 134 172 124" fill="none" stroke="#E58FA8" stroke-width="4" stroke-linecap="round"/>'+noise()+'<g class="pp" style="--t:4.6s"><rect x="84" y="140" width="152" height="30" fill="#fff" stroke="#2E3248" stroke-width="2"/><text x="94" y="160" font-size="13" font-weight="700" fill="#2E3248">FID 257 → 174 с REPA</text></g>'),
+B('<rect width="320" height="180" fill="var(--peach)"/><g fill="none" stroke-width="8" stroke-linecap="round"><path class="dr" pathLength="1" style="--t:0s;--d:.8s" stroke="#2E3248" d="M16 90H110"/>'+
+[['--lav','M110 90C150 90 150 28 200 28H290',.8],['--mint','M110 90C140 90 150 60 200 60H290',1],['--rose','M110 90C140 90 150 120 200 120H290',1.2],['--butter','M110 90C150 90 150 152 200 152H290',1.4]].map(function(p){return '<path class="dr" pathLength="1" style="--t:'+p[2]+'s;--d:1.2s" stroke="var('+p[0]+')" d="'+p[1]+'"/>'}).join('')+'</g>'+
+[28,60,120,152].map(function(y,i){return '<circle class="pp" style="--t:'+(2.4+i*.2)+'s" cx="296" cy="'+y+'" r="9" fill="var(--paper)" stroke="#2E3248" stroke-width="2"/>'}).join('')+
+'<text x="16" y="116" font-size="14" font-weight="700" fill="#2E3248">1989</text><text x="250" y="16" font-size="14" font-weight="700" fill="#2E3248" text-anchor="end">2023</text>'+
+'<g class="pp" style="--t:3.8s"><rect x="62" y="82" width="176" height="82" fill="#2E3248" opacity=".25" transform="translate(4 5)"/><rect x="62" y="82" width="176" height="82" fill="#fff" stroke="#2E3248" stroke-width="2"/><text x="74" y="104" font-size="13" font-weight="700" fill="#2E3248">ИИ-паспорт мира</text><rect x="74" y="114" width="150" height="6" fill="var(--lav)"/><rect x="74" y="128" width="120" height="6" fill="var(--mint)"/><rect x="74" y="142" width="136" height="6" fill="var(--rose)"/></g>'),
+B('<rect width="320" height="180" fill="var(--butter)"/><g class="pp" style="--t:0s"><rect x="14" y="52" width="92" height="80" rx="5" fill="#2E3248"/><text x="24" y="86" font-size="16" font-weight="700" fill="#F1EFF8">ESP32</text><text x="24" y="106" font-size="12" fill="#BEC0D6">ESP8266</text></g>'+
+'<g class="pp" style="--t:1s"><path class="mv" d="M106 82H140M106 98H140" stroke="#2E3248" stroke-width="3" fill="none"/></g><g class="pp" style="--t:1.6s"><rect x="140" y="40" width="64" height="96" rx="12" fill="var(--peach)"/><circle cx="172" cy="72" r="12" fill="#fff"/><circle cx="172" cy="108" r="19" fill="#fff"/><circle cx="172" cy="108" r="9" fill="#2E3248"/></g>'+
+'<g fill="none" stroke="#2E3248" stroke-width="3" stroke-linecap="round"><path class="wv" style="--t:2.4s" d="M216 96Q224 108 216 120"/><path class="wv" style="--t:2.6s" d="M230 86Q244 108 230 130"/><path class="wv" style="--t:2.8s" d="M244 76Q264 108 244 140"/></g>'+
+'<g class="pp" style="--t:4.2s"><rect x="206" y="12" width="104" height="48" fill="#fff" stroke="#2E3248" stroke-width="2"/><text x="214" y="32" font-size="12" font-weight="700" fill="#2E3248">Диплом 3 степени</text><text x="214" y="50" font-size="10.5" fill="#575C75">Якутск, 2025</text></g>')];
+var T=[
+['Сайт для жителей','Народный контроль: Алдан','<p>Сайт, где житель Алдана видит на карте, где есть свет и где отключение, и может сразу обратиться, если что-то не так. Я сделал его целиком сам: от карты до панели штаба.</p><ul><li>Статусы отключений света на карте.</li><li>Личные кабинеты жителей.</li><li>Обработка обращений: от заявки до ответа.</li><li>Панель штаба, где видно все обращения.</li><li>ИИ-помощник, который подсказывает и отвечает жителям.</li></ul><p>Написан на PHP с базой SQLite. Алдан это пилот: сейчас добавляются уведомления в Telegram и MAX, чтобы статус приходил сам.</p>','Статусы,Карта,Кабинеты,Обращения,Панель штаба,ИИ-помощник','<a class="visit" href="https://mycountryrussia.ru" target="_blank" rel="noopener">mycountryrussia.ru</a>'],
+['Нейросеть','Lumen','<p>Генератор лиц, который я написал с нуля и обучил на видеокарте всего с 4 ГБ памяти. Он начинает с шума и шаг за шагом превращает его в лицо.</p><ul><li>Двухстадийная латентная генерация на основе flow matching.</li><li>Латентное пространство выровнено по смыслу методом REPA.</li><li>С REPA FID 174, без него 257: чем ниже, тем лучше.</li></ul><p>По проекту написана статья, и он подан на конкурс «Учёные будущего 2026».</p>','Диффузия,Flow matching,REPA,4 ГБ видеопамяти',''],
+['Игра','Игра про альтернативные миры','<p>Генератор миров: у каждого свой путь истории России и Запада с 1989 по 2023 год, со своей политикой, технологиями и местным героем.</p><ul><li>Игрок попадает в мир в 2024 году на место героя.</li><li>До него в этом мире мог быть другой герой, прыгнувший из предыдущего мира. Так выстраивается цепочка миров.</li><li>Задача: расследовать, как она возникла, кто был первым и почему каждый герой ушёл.</li><li>Следы ищутся в телефоне прежнего героя: история браузера, переписки, заметки, фото.</li></ul><p>У каждого мира есть ИИ-паспорт. Всё работает в браузере.</p>','Ветки истории,1989–2023,ИИ-паспорт,Браузер',''],
+['Микроконтроллеры','Умная колонка на ESP32 и ESP8266','<p>Умная колонка на микроконтроллерах ESP32 и ESP8266: платы работают вместе и выводят звук на динамик.</p><p>С этим проектом я получил диплом 3 степени на форуме «Шаг в будущую профессию» в Якутске в 2025 году.</p>','ESP32,ESP8266,Звук,Диплом 3 степени','']];
+var m=document.getElementById('pm'),cl=document.getElementById('pm-clip'),tx=document.getElementById('pm-txt'),cur=0,last=null;
+function play(){cl.innerHTML=clips[cur];var b=document.getElementById('pm-pb');b.style.animation='none';void b.offsetWidth;b.style.animation=''}
+function open(i,el){cur=i;last=el;var t=T[i];
+tx.innerHTML='<span class="label">'+t[0]+'</span><h3 id="pm-t">'+t[1]+'</h3>'+t[2]+'<div class="tags">'+t[3].split(',').map(function(s){return '<span class="tag">'+s+'</span>'}).join('')+'</div>'+t[4];
+play();m.classList.add('on');m.querySelector('.x').focus()}
+function close(){m.classList.remove('on');cl.innerHTML='';if(last)last.focus()}
+document.querySelectorAll('.proj').forEach(function(a,i){
+a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-label','Подробнее: '+T[i][1]);
+var s=document.createElement('span');s.className='more';s.textContent='Смотреть ролик и подробнее →';a.querySelector('.proj-body').appendChild(s);
+a.addEventListener('click',function(e){if(e.target.closest('a'))return;open(i,a)});
+a.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open(i,a)}})});
+m.querySelector('.x').addEventListener('click',close);
+m.querySelector('.rep').addEventListener('click',play);
+m.addEventListener('click',function(e){if(e.target===m)close()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&m.classList.contains('on'))close()});
+})();
+</script>
+</body></html>
